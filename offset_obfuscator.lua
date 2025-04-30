@@ -27,15 +27,68 @@ function offset_obfuscator.deobfuscate_offset(obfuscated)
     return original_offset
 end
 
--- Example usage
-local example_offset = 0x134D3C
-print(string.format("Original offset: 0x%X", example_offset))
+-- UI part for andlua environment
+local andlua = require("andlua")
 
-local obfuscated = offset_obfuscator.obfuscate_offset(example_offset)
-print("Obfuscated offset:", obfuscated)
+local function create_ui()
+    local window = andlua.createWindow("Offset Obfuscator", 400, 300)
+    window:setBackgroundColor(0x222222)
 
-local deobfuscated = offset_obfuscator.deobfuscate_offset(obfuscated)
-print(string.format("Deobfuscated offset: 0x%X", deobfuscated))
+    local label_original = andlua.createLabel("Original Offset (hex):", 20, 20, 360, 30)
+    label_original:setTextColor(0xFFFFFF)
+    window:addChild(label_original)
+
+    local input_original = andlua.createTextBox(20, 50, 360, 30)
+    input_original:setText("0x134D3C")
+    window:addChild(input_original)
+
+    local label_obfuscated = andlua.createLabel("Obfuscated Offset (decimal):", 20, 100, 360, 30)
+    label_obfuscated:setTextColor(0xFFFFFF)
+    window:addChild(label_obfuscated)
+
+    local output_obfuscated = andlua.createTextBox(20, 130, 360, 30)
+    output_obfuscated:setReadOnly(true)
+    window:addChild(output_obfuscated)
+
+    local label_deobfuscated = andlua.createLabel("Deobfuscated Offset (hex):", 20, 180, 360, 30)
+    label_deobfuscated:setTextColor(0xFFFFFF)
+    window:addChild(label_deobfuscated)
+
+    local output_deobfuscated = andlua.createTextBox(20, 210, 360, 30)
+    output_deobfuscated:setReadOnly(true)
+    window:addChild(output_deobfuscated)
+
+    local function update_offsets()
+        local input_text = input_original:getText()
+        local offset_num = nil
+        -- Parse hex input, allow with or without 0x prefix
+        if input_text:match("^0x") then
+            offset_num = tonumber(input_text)
+        else
+            offset_num = tonumber("0x" .. input_text)
+        end
+
+        if offset_num then
+            local obf = offset_obfuscator.obfuscate_offset(offset_num)
+            local deobf = offset_obfuscator.deobfuscate_offset(obf)
+            output_obfuscated:setText(tostring(obf))
+            output_deobfuscated:setText(string.format("0x%X", deobf))
+        else
+            output_obfuscated:setText("Invalid input")
+            output_deobfuscated:setText("Invalid input")
+        end
+    end
+
+    input_original:onTextChanged(update_offsets)
+
+    -- Initialize with default value
+    update_offsets()
+
+    window:show()
+end
+
+-- Run the UI
+create_ui()
 
 -- Return the module
 return offset_obfuscator
